@@ -60,6 +60,7 @@ Resources:
       Policies:
         - AmazonSQSFullAccess
         - AWSXRayDaemonWriteAccess
+        - AmazonDynamoDBFullAccess
       Tracing: Active
       Events:
         ScheduleToRunTheLambda:
