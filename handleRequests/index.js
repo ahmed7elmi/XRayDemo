@@ -46,6 +46,8 @@ const messageHandler = function (message) {
 }
 
 exports.handler = function (event, context, callback) {
+    let segment = AWSXRay.getSegment().addNewSubsegment('handleRequest.handler');
+    segment.addAnnotation('lambda_group', 'XRayDemo');
     console.log(process.env.REQUESTS_QUEUE_URL);
 
     // AWSXRay.captureFunc('annotations', )
