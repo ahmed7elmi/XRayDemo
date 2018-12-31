@@ -1,0 +1,72 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: A Demo for X-Ray with Lambda.
+
+Parameters:
+  STAGE:
+    Type: String
+Resources:
+  RequestsQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: 'pending-requests'
+      MessageRetentionPeriod: 345600
+      VisibilityTimeout: 180
+  MessagesStore:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      TableName: 'MessagesStore'
+      AttributeDefinitions:
+        - AttributeName: RequestID
+          AttributeType: S
+      KeySchema:
+        - AttributeName: RequestID
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 50
+        WriteCapacityUnits: 50
+  SendRequest:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      FunctionName: 'xray-SendRequest'
+      Handler: index.handler
+      Runtime: nodejs8.10
+      CodeUri: ./sendRequest
+      MemorySize: 128
+      Timeout: 30
+      Policies:
+        - AmazonSQSFullAccess
+        - AWSXRayDaemonWriteAccess
+      Tracing: Active
+      Events:
+        PostRequest:
+          Type: Api
+          Properties:
+            Path: /send
+            Method: post
+      Environment:
+        Variables:
+          REQUESTS_QUEUE_URL:
+            !Ref RequestsQueue
+  HandleRequests:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      FunctionName: 'xray-HandleRequests'
+      Handler: index.handler
+      Runtime: nodejs8.10
+      CodeUri: ./handleRequests
+      MemorySize: 128
+      Timeout: 30
+      Policies:
+        - AmazonSQSFullAccess
+        - AWSXRayDaemonWriteAccess
+      Tracing: Active
+      Events:
+        ScheduleToRunTheLambda:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+      Environment:
+        Variables:
+          REQUESTS_QUEUE_URL:
+            !Ref RequestsQueue
