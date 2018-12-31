@@ -7,6 +7,7 @@ const ddbOptions = {
     region: process.env.AWSREGION,
     apiVersion: '2012-08-10'
 };
+const sqs = new AWS.SQS();
 
 const messageHandler = function (message) {
     return new Promise( (resolve, reject) => {
@@ -18,7 +19,7 @@ const messageHandler = function (message) {
                     S: uuidv4()
                 },
                 Data: {
-                    S: message
+                    S: message.Body
                 }
             }
         };
@@ -26,6 +27,18 @@ const messageHandler = function (message) {
             if (err) {
                 reject(err);
             } else {
+                let delParams = {
+                    QueueUrl: process.env.REQUESTS_QUEUE_URL,
+                    ReceiptHandle: message.ReceiptHandle
+                };
+                // TODO: the delete message call will not block here, should we promisify it?
+                sqs.deleteMessage(delParams, (err, delResponse) => {
+                    if (err) {
+                        console.log(err);
+                        return reject(err);
+                    }
+                    console.log(JSON.stringify(delResponse, null, 2));
+                });
                 resolve(message);
             }
         });
@@ -34,7 +47,6 @@ const messageHandler = function (message) {
 
 exports.handler = function (event, context, callback) {
     console.log(process.env.REQUESTS_QUEUE_URL);
-    const sqs = new AWS.SQS();
 
     // AWSXRay.captureFunc('annotations', )
 
@@ -50,16 +62,18 @@ exports.handler = function (event, context, callback) {
             console.log(err);
             return callback(err);
         }
-        console.log(`Messages received, Count = ${data.Messages.length}`);
-        
-        let promises = data.Messages.map(messageHandler);
-
-        Promise.all(promises).then( () => {
-            return callback(null, {
-                statusCode: 200,
-                body: 'Ok'
-            });
-        }).catch( (err) => { return callback(err) });
+        if (data.Messages) {
+            console.log(`Messages received, Count = ${data.Messages.length}`);
+            
+            let promises = data.Messages.map(messageHandler);
+    
+            Promise.all(promises).then( () => {
+                return callback(null, {
+                    statusCode: 200,
+                    body: 'Ok'
+                });
+            }).catch( (err) => { return callback(err) });
+        }
         
         // return callback(null, {
         //     statusCode: 200,
