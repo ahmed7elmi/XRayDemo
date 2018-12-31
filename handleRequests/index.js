@@ -45,9 +45,13 @@ const messageHandler = function (message) {
     });
 }
 
-exports.handler = function (event, context, callback) {
+exports.handler = function (event, context, theCallback) {
     let segment = AWSXRay.getSegment().addNewSubsegment('handleRequest.handler');
     segment.addAnnotation('lambda_group', 'XRayDemo');
+    const callback = (err, response) => {
+        segment.close();
+        return theCallback(err, response);
+    }
     console.log(process.env.REQUESTS_QUEUE_URL);
 
     // AWSXRay.captureFunc('annotations', )

@@ -3,9 +3,13 @@ let AWSXRay = require('aws-xray-sdk-core');
 let AWS = AWSXRay.captureAWS(require('aws-sdk'));
 AWS.config.update({region: process.env.AWS_REGION});
 
-exports.handler = function (event, context, callback) {
+exports.handler = function (event, context, theCallback) {
     let segment = AWSXRay.getSegment().addNewSubsegment('sendRequest.handler');
     segment.addAnnotation('lambda_group', 'XRayDemo');
+    const callback = (err, response) => {
+        segment.close();
+        return theCallback(err, response);
+    }
     console.log(process.env.REQUESTS_QUEUE_URL);
     const sqs = new AWS.SQS();
 
