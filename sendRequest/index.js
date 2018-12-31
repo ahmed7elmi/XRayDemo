@@ -27,7 +27,7 @@ exports.handler = function (event, context, callback) {
             console.log('enqueued');
             return callback(null, {
                 statusCode: 200,
-                body: 'Ok'
+                body: randomValue.toString()
             });
         });
 }
