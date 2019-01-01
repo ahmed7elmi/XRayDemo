@@ -11,8 +11,12 @@ read x
 
 PROJECT=xray-demo
 BUCKET=rcw-new-request-05
-PROFILE="cpaas"
+# PROFILE="cpaas"
+PROFILE=$1
 
+echo "Deploy on $PROFILE"
+echo "Press any key to continue"
+read x
 
 #echo -n $redis_ep && exit 1
 #region="eu-west-1"

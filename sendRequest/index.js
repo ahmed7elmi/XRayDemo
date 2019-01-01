@@ -1,5 +1,4 @@
 let AWSXRay = require('aws-xray-sdk-core');
-//AWSXRay.enableManualMode();
 let AWS = AWSXRay.captureAWS(require('aws-sdk'));
 AWS.config.update({region: process.env.AWS_REGION});
 
