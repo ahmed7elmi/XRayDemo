@@ -15,10 +15,21 @@ Resources:
   MessagesStore:
     Type: 'AWS::DynamoDB::Table'
     Properties:
-      TableName: 'MessagesStore'
+      TableName: 'MessagesStore2'
       AttributeDefinitions:
         - AttributeName: RequestID
           AttributeType: S
+      GlobalSecondaryIndexes:
+        -
+          IndexName: 'MessageStore_GSI_Artist'
+          KeySchema:
+            - AttributeName: Artist
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: 10
+            WriteCapacityUnits: 10
       KeySchema:
         - AttributeName: RequestID
           KeyType: HASH
