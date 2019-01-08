@@ -19,6 +19,8 @@ Resources:
       AttributeDefinitions:
         - AttributeName: RequestID
           AttributeType: S
+        - AttributeName: Artist
+          AttributeType: S
       GlobalSecondaryIndexes:
         -
           IndexName: 'MessageStore_GSI_Artist'
